@@ -1,0 +1,572 @@
+{
+  "aban": {
+    "url": "https://raw.githubusercontent.com/TeleBoxDev/TeleBox_Plugins/main/aban/aban.ts",
+    "desc": "高级封禁管理",
+    "_updatedAt": 1777455285345
+  },
+  "acron": {
+    "url": "https://raw.githubusercontent.com/TeleBoxDev/TeleBox_Plugins/main/acron/acron.ts",
+    "desc": "定时发送/转发/复制/置顶/取消置顶/删除消息/执行命令",
+    "_updatedAt": 1777455285860
+  },
+  "admin_board": {
+    "url": "https://raw.githubusercontent.com/TeleBoxDev/TeleBox_Plugins/main/admin_board/admin_board.ts",
+    "desc": "管理员排行榜 末位淘汰",
+    "_updatedAt": 1777455286597
+  },
+  "aff": {
+    "url": "https://raw.githubusercontent.com/TeleBoxOrg/TeleBox_Plugins/main/aff/aff.ts",
+    "desc": "机场Aff信息管理",
+    "_updatedAt": 1777455287039
+  },
+  "ai": {
+    "url": "https://raw.githubusercontent.com/TeleBoxDev/TeleBox_Plugins/main/ai/ai.ts",
+    "desc": "ai聚合",
+    "_updatedAt": 1777455287895
+  },
+  "aitc": {
+    "url": "https://raw.githubusercontent.com/TeleBoxDev/TeleBox_Plugins/main/aitc/aitc.ts",
+    "desc": "AI Prompt 转写",
+    "_updatedAt": 1777455288359
+  },
+  "annualreport": {
+    "url": "https://raw.githubusercontent.com/TeleBoxOrg/TeleBox_Plugins/main/annualreport/annualreport.ts",
+    "desc": "年度报告",
+    "_updatedAt": 1777455289107
+  },
+  "atadmins": {
+    "url": "https://raw.githubusercontent.com/TeleBoxDev/TeleBox_Plugins/main/atadmins/atadmins.ts",
+    "desc": "一键艾特全部管理员",
+    "_updatedAt": 1777455289558
+  },
+  "atall": {
+    "url": "https://raw.githubusercontent.com/TeleBoxDev/TeleBox_Plugins/main/atall/atall.ts",
+    "desc": "一键艾特全部成员",
+    "_updatedAt": 1777455290269
+  },
+  "audio_to_voice": {
+    "url": "https://raw.githubusercontent.com/TeleBoxDev/TeleBox_Plugins/main/audio_to_voice/audio_to_voice.ts",
+    "desc": "音乐转音频",
+    "_updatedAt": 1777455290711
+  },
+  "autochangename": {
+    "url": "https://raw.githubusercontent.com/TeleBoxDev/TeleBox_Plugins/main/autochangename/autochangename.ts",
+    "desc": "自动定时修改用户名插",
+    "_updatedAt": 1777455291484
+  },
+  "autodel": {
+    "url": "https://raw.githubusercontent.com/TeleBoxDev/TeleBox_Plugins/main/autodel/autodel.ts",
+    "desc": "定时删除消息",
+    "_updatedAt": 1777455291955
+  },
+  "autodelcmd": {
+    "url": "https://raw.githubusercontent.com/TeleBoxDev/TeleBox_Plugins/main/autodelcmd/autodelcmd.ts",
+    "desc": "自动删除命令消息",
+    "_updatedAt": 1777455292659
+  },
+  "autorepeat": {
+    "url": "https://raw.githubusercontent.com/TeleBoxOrg/TeleBox_Plugins/main/autorepeat/autorepeat.ts",
+    "desc": "智能自动复读机",
+    "_updatedAt": 1777455293131
+  },
+  "banana": {
+    "url": "https://raw.githubusercontent.com/TeleBoxDev/TeleBox_Plugins/main/banana/banana.ts",
+    "desc": "Nano-Banana 图像编辑",
+    "_updatedAt": 1777455293824
+  },
+  "bgp": {
+    "url": "https://raw.githubusercontent.com/TiaraBasori/TeleBox_Plugins/main/bgp/bgp.ts",
+    "desc": "BGP路由图查询工具",
+    "_updatedAt": 1777455294431
+  },
+  "biko": {
+    "url": "https://raw.githubusercontent.com/TeleBoxDev/TeleBox_Plugins/main/biko/biko.ts",
+    "desc": "批量获取整理发送指定对话中指定用户的消息",
+    "_updatedAt": 1777455295136
+  },
+  "bin": {
+    "url": "https://raw.githubusercontent.com/TeleBoxDev/TeleBox_Plugins/main/bin/bin.ts",
+    "desc": "卡头检测",
+    "_updatedAt": 1777455295587
+  },
+  "bizhi": {
+    "url": "https://raw.githubusercontent.com/TeleBoxDev/TeleBox_Plugins/main/bizhi/bizhi.ts",
+    "desc": "发送一张壁纸",
+    "_updatedAt": 1777455296453
+  },
+  "botmzt": {
+    "url": "https://raw.githubusercontent.com/TeleBoxOrg/TeleBox_Plugins/main/botmzt/botmzt.ts",
+    "desc": "随机获取写真图片",
+    "_updatedAt": 1777455297092
+  },
+  "bs": {
+    "url": "https://raw.githubusercontent.com/TeleBoxDev/TeleBox_Plugins/main/bs/bs.ts",
+    "desc": "保送",
+    "_updatedAt": 1777455297816
+  },
+  "bulk_delete": {
+    "url": "https://raw.githubusercontent.com/TeleBoxDev/TeleBox_Plugins/main/bulk_delete/bulk_delete.ts",
+    "desc": "批量删除消息",
+    "_updatedAt": 1777455298315
+  },
+  "calc": {
+    "url": "https://raw.githubusercontent.com/TeleBoxDev/TeleBox_Plugins/main/calc/calc.ts",
+    "desc": "计算器",
+    "_updatedAt": 1777455299064
+  },
+  "clean": {
+    "url": "https://raw.githubusercontent.com/TeleBoxOrg/TeleBox_Plugins/main/clean/clean.ts",
+    "desc": "账号清理工具 Pro",
+    "_updatedAt": 1777455299522
+  },
+  "clean_member": {
+    "url": "https://raw.githubusercontent.com/TeleBoxDev/TeleBox_Plugins/main/clean_member/clean_member.ts",
+    "desc": "群组成员清理",
+    "_updatedAt": 1777455300289
+  },
+  "clear_sticker": {
+    "url": "https://raw.githubusercontent.com/TeleBoxDev/TeleBox_Plugins/main/clear_sticker/clear_sticker.ts",
+    "desc": "批量删除群组内贴纸",
+    "_updatedAt": 1777455300734
+  },
+  "convert": {
+    "url": "https://raw.githubusercontent.com/TeleBoxDev/TeleBox_Plugins/main/convert/convert.ts",
+    "desc": "视频转音频",
+    "_updatedAt": 1777455301480
+  },
+  "copy_sticker_set": {
+    "url": "https://raw.githubusercontent.com/TeleBoxDev/TeleBox_Plugins/main/copy_sticker_set/copy_sticker_set.ts",
+    "desc": "复制贴纸包",
+    "_updatedAt": 1777455301935
+  },
+  "codex_image": {
+    "url": "https://raw.githubusercontent.com/TeleBoxDev/TeleBox_Plugins/main/codex_image/codex_image.ts",
+    "desc": "通过codex调用gpt-image-2",
+    "_updatedAt": 1777455302657
+  },
+  "cosplay": {
+    "url": "https://raw.githubusercontent.com/TeleBoxDev/TeleBox_Plugins/main/cosplay/cosplay.ts",
+    "desc": "获取随机cos写真",
+    "_updatedAt": 1777455303164
+  },
+  "crazy4": {
+    "url": "https://raw.githubusercontent.com/TeleBoxDev/TeleBox_Plugins/main/crazy4/crazy4.ts",
+    "desc": "疯狂星期四文案",
+    "_updatedAt": 1777455303986
+  },
+  "da": {
+    "url": "https://raw.githubusercontent.com/TeleBoxDev/TeleBox_Plugins/main/da/da.ts",
+    "desc": "删除群内所有消息",
+    "_updatedAt": 1777455304607
+  },
+  "dbdj": {
+    "url": "https://raw.githubusercontent.com/TeleBoxDev/TeleBox_Plugins/main/dbdj/dbdj.ts",
+    "desc": "点兵点将 - 从最近的消息中随机抽取指定人数的用户",
+    "_updatedAt": 1777455305322
+  },
+  "dc": {
+    "url": "https://raw.githubusercontent.com/TeleBoxDev/TeleBox_Plugins/main/dc/dc.ts",
+    "desc": "获取实体DC",
+    "_updatedAt": 1777455305784
+  },
+  "deepwiki": {
+    "url": "https://raw.githubusercontent.com/TeleBoxDev/TeleBox_Plugins/main/deepwiki/deepwiki.ts",
+    "desc": "DeepWiki多项目聚合",
+    "_updatedAt": 1777455306554
+  },
+  "dig": {
+    "url": "https://raw.githubusercontent.com/TeleBoxDev/TeleBox_Plugins/main/dig/dig.ts",
+    "desc": "DNS 查询",
+    "_updatedAt": 1777455307006
+  },
+  "diss": {
+    "url": "https://raw.githubusercontent.com/TeleBoxOrg/TeleBox_Plugins/main/diss/diss.ts",
+    "desc": "儒雅随和版祖安语录",
+    "_updatedAt": 1777455307772
+  },
+  "dme": {
+    "url": "https://raw.githubusercontent.com/TeleBoxDev/TeleBox_Plugins/main/dme/dme.ts",
+    "desc": "删除指定数量的自己发送的消息",
+    "_updatedAt": 1777455308315
+  },
+  "eat": {
+    "url": "https://raw.githubusercontent.com/TeleBoxDev/TeleBox_Plugins/main/eat/eat.ts",
+    "desc": "生成带头像表情包",
+    "_updatedAt": 1777455309031
+  },
+  "eatgif": {
+    "url": "https://raw.githubusercontent.com/TeleBoxDev/TeleBox_Plugins/main/eatgif/eatgif.ts",
+    "desc": "生成\"吃掉\"动图表情包",
+    "_updatedAt": 1777455309495
+  },
+  "encode": {
+    "url": "https://raw.githubusercontent.com/TeleBoxDev/TeleBox_Plugins/main/encode/encode.ts",
+    "desc": "简单的编码解码",
+    "_updatedAt": 1777455310215
+  },
+  "epic": {
+    "url": "https://raw.githubusercontent.com/TeleBoxOrg/TeleBox_Plugins/main/epic/epic.ts",
+    "desc": "检查Epic Games喜加一优惠",
+    "_updatedAt": 1777455310673
+  },
+  "fadian": {
+    "url": "https://raw.githubusercontent.com/TeleBoxDev/TeleBox_Plugins/main/fadian/fadian.ts",
+    "desc": "fadian语录",
+    "_updatedAt": 1777455312177
+  },
+  "getstickers": {
+    "url": "https://raw.githubusercontent.com/TeleBoxDev/TeleBox_Plugins/main/getstickers/getstickers.ts",
+    "desc": "下载整个贴纸包",
+    "_updatedAt": 1777455312659
+  },
+  "gif": {
+    "url": "https://raw.githubusercontent.com/TeleBoxDev/TeleBox_Plugins/main/gif/gif.ts",
+    "desc": "GIF与视频转贴纸",
+    "_updatedAt": 1777455313390
+  },
+  "git_PR": {
+    "url": "https://raw.githubusercontent.com/TeleBoxDev/TeleBox_Plugins/main/git_PR/git_PR.ts",
+    "desc": "Git PR 管理",
+    "_updatedAt": 1777455313846
+  },
+  "goodnight": {
+    "url": "https://raw.githubusercontent.com/TeleBoxOrg/TeleBox_Plugins/main/goodnight/goodnight.ts",
+    "desc": "自动统计晚安/早安",
+    "_updatedAt": 1777455314637
+  },
+  "gt": {
+    "url": "https://raw.githubusercontent.com/TeleBoxDev/TeleBox_Plugins/main/gt/gt.ts",
+    "desc": "谷歌中英文互译",
+    "_updatedAt": 1777455315092
+  },
+  "his": {
+    "url": "https://raw.githubusercontent.com/TeleBoxDev/TeleBox_Plugins/main/his/his.ts",
+    "desc": "查看被回复者最近消息",
+    "_updatedAt": 1777455315795
+  },
+  "hitokoto": {
+    "url": "https://raw.githubusercontent.com/TeleBoxOrg/TeleBox_Plugins/main/hitokoto/hitokoto.ts",
+    "desc": "获取随机一言",
+    "_updatedAt": 1777455316240
+  },
+  "httpcat": {
+    "url": "https://raw.githubusercontent.com/TeleBoxDev/TeleBox_Plugins/main/httpcat/httpcat.ts",
+    "desc": "发送一张http状态码主题的猫猫图片",
+    "_updatedAt": 1777455316958
+  },
+  "ids": {
+    "url": "https://raw.githubusercontent.com/TeleBoxDev/TeleBox_Plugins/main/ids/ids.ts",
+    "desc": "用户信息显示以及跳转链接",
+    "_updatedAt": 1777455317424
+  },
+  "ip": {
+    "url": "https://raw.githubusercontent.com/TeleBoxDev/TeleBox_Plugins/main/ip/ip.ts",
+    "desc": "IP 地址查询",
+    "_updatedAt": 1777455318120
+  },
+  "isalive": {
+    "url": "https://raw.githubusercontent.com/TeleBoxDev/TeleBox_Plugins/main/isalive/isalive.ts",
+    "desc": "活了么",
+    "_updatedAt": 1777455318583
+  },
+  "javdb": {
+    "url": "https://raw.githubusercontent.com/TeleBoxDev/TeleBox_Plugins/main/javdb/javdb.ts",
+    "desc": "寻找番号封面",
+    "_updatedAt": 1777455319294
+  },
+  "jupai": {
+    "url": "https://raw.githubusercontent.com/TeleBoxOrg/TeleBox_Plugins/main/jupai/jupai.ts",
+    "desc": "举牌小人",
+    "_updatedAt": 1777455319783
+  },
+  "keep_online": {
+    "url": "https://raw.githubusercontent.com/TeleBoxDev/TeleBox_Plugins/main/keep_online/keep_online.ts",
+    "desc": "保活自动重启(测试版) 请查看说明操作",
+    "_updatedAt": 1777455320472
+  },
+  "keyword": {
+    "url": "https://raw.githubusercontent.com/TeleBoxDev/TeleBox_Plugins/main/keyword/keyword.ts",
+    "desc": "关键词自动回复",
+    "_updatedAt": 1777455320930
+  },
+  "kitt": {
+    "url": "https://raw.githubusercontent.com/TeleBoxDev/TeleBox_Plugins/main/kitt/kitt.ts",
+    "desc": "高级触发器: 匹配 -> 执行, 高度自定义, 逻辑自由",
+    "_updatedAt": 1777455321636
+  },
+  "kkp": {
+    "url": "https://raw.githubusercontent.com/TeleBoxOrg/TeleBox_Plugins/main/kkp/kkp.ts",
+    "desc": "获取NSFW视频",
+    "_updatedAt": 1777455322070
+  },
+  "komari": {
+    "url": "https://raw.githubusercontent.com/TeleBoxDev/TeleBox_Plugins/main/komari/komari.ts",
+    "desc": "Komari 服务器监控",
+    "_updatedAt": 1777455322786
+  },
+  "listusernames": {
+    "url": "https://raw.githubusercontent.com/TeleBoxOrg/TeleBox_Plugins/main/listusernames/listusernames.ts",
+    "desc": "列出属于自己的公开群组/频道",
+    "_updatedAt": 1777455323213
+  },
+  "lottery": {
+    "url": "https://raw.githubusercontent.com/TeleBoxDev/TeleBox_Plugins/main/lottery/lottery.ts",
+    "desc": "抽奖",
+    "_updatedAt": 1777455323976
+  },
+  "lu_bs": {
+    "url": "https://raw.githubusercontent.com/TeleBoxOrg/TeleBox_Plugins/main/lu_bs/lu_bs.ts",
+    "desc": "鲁小迅整点报时",
+    "_updatedAt": 1777455324453
+  },
+  "manage_admin": {
+    "url": "https://raw.githubusercontent.com/TeleBoxDev/TeleBox_Plugins/main/manage_admin/manage_admin.ts",
+    "desc": "管理管理员",
+    "_updatedAt": 1777455325205
+  },
+  "mode": {
+    "url": "https://raw.githubusercontent.com/TeleBoxOrg/TeleBox_Plugins/main/mode/mode.ts",
+    "desc": "自定义消息格式",
+    "_updatedAt": 1777455325724
+  },
+  "moyu": {
+    "url": "https://raw.githubusercontent.com/TeleBoxDev/TeleBox_Plugins/main/moyu/moyu.ts",
+    "desc": "摸鱼日报",
+    "_updatedAt": 1777455326473
+  },
+  "music": {
+    "url": "https://raw.githubusercontent.com/TeleBoxDev/TeleBox_Plugins/main/music/music.ts",
+    "desc": "YouTube音乐",
+    "_updatedAt": 1777455327033
+  },
+  "music_bot": {
+    "url": "https://raw.githubusercontent.com/TeleBoxDev/TeleBox_Plugins/main/music_bot/music_bot.ts",
+    "desc": "多音源音乐搜索",
+    "_updatedAt": 1777455327785
+  },
+  "netease": {
+    "url": "https://raw.githubusercontent.com/TeleBoxDev/TeleBox_Plugins/main/netease/netease.ts",
+    "desc": "网易云音乐",
+    "_updatedAt": 1777455328227
+  },
+  "news": {
+    "url": "https://raw.githubusercontent.com/TeleBoxDev/TeleBox_Plugins/main/news/news.ts",
+    "desc": "每日新闻",
+    "_updatedAt": 1777455329377
+  },
+  "nezha": {
+    "url": "https://raw.githubusercontent.com/TeleBoxOrg/TeleBox_Plugins/main/nezha/nezha.ts",
+    "desc": "哪吒监控",
+    "_updatedAt": 1777455329831
+  },
+  "ntp": {
+    "url": "https://raw.githubusercontent.com/TeleBoxDev/TeleBox_Plugins/main/ntp/ntp.ts",
+    "desc": "NTP 时间同步",
+    "_updatedAt": 1777455330584
+  },
+  "openlist": {
+    "url": "https://raw.githubusercontent.com/TeleBoxOrg/TeleBox_Plugins/main/openlist/openlist.ts",
+    "desc": "openlist管理",
+    "_updatedAt": 1777455331053
+  },
+  "oxost": {
+    "url": "https://raw.githubusercontent.com/TeleBoxDev/TeleBox_Plugins/main/oxost/oxost.ts",
+    "desc": "回复聊天中的文件与媒体 得到一个临时的下载链接",
+    "_updatedAt": 1777455332256
+  },
+  "pangu": {
+    "url": "https://raw.githubusercontent.com/TeleBoxOrg/TeleBox_Plugins/main/pangu/pangu.ts",
+    "desc": "消息自动pangu化",
+    "_updatedAt": 1777455332737
+  },
+  "paolu": {
+    "url": "https://raw.githubusercontent.com/TeleBoxOrg/TeleBox_Plugins/main/paolu/paolu.ts",
+    "desc": "群组一键跑路",
+    "_updatedAt": 1777455334303
+  },
+  "parsehub": {
+    "url": "https://raw.githubusercontent.com/TeleBoxDev/TeleBox_Plugins/main/parsehub/parsehub.ts",
+    "desc": "社交媒体链接解析助手",
+    "_updatedAt": 1777455334791
+  },
+  "pic_to_sticker": {
+    "url": "https://raw.githubusercontent.com/TeleBoxDev/TeleBox_Plugins/main/pic_to_sticker/pic_to_sticker.ts",
+    "desc": "图片转表情",
+    "_updatedAt": 1777455335551
+  },
+  "pmcaptcha": {
+    "url": "https://raw.githubusercontent.com/TeleBoxOrg/TeleBox_Plugins/main/pmcaptcha/pmcaptcha.ts",
+    "desc": "简单防私聊",
+    "_updatedAt": 1777455336112
+  },
+  "portball": {
+    "url": "https://raw.githubusercontent.com/TeleBoxOrg/TeleBox_Plugins/main/portball/portball.ts",
+    "desc": "临时禁言",
+    "_updatedAt": 1777455336885
+  },
+  "premium": {
+    "url": "https://raw.githubusercontent.com/TeleBoxOrg/TeleBox_Plugins/main/premium/premium.ts",
+    "desc": "群组大会员统计",
+    "_updatedAt": 1777455337443
+  },
+  "q": {
+    "url": "https://raw.githubusercontent.com/TeleBoxDev/TeleBox_Plugins/main/q/q.ts",
+    "desc": "消息引用生成贴纸",
+    "_updatedAt": 1777455338297
+  },
+  "qr": {
+    "url": "https://raw.githubusercontent.com/TeleBoxDev/TeleBox_Plugins/main/qr/qr.ts",
+    "desc": "QR 二维码",
+    "_updatedAt": 1777455338773
+  },
+  "rate": {
+    "url": "https://raw.githubusercontent.com/TeleBoxDev/TeleBox_Plugins/main/rate/rate.ts",
+    "desc": "货币实时汇率查询与计算",
+    "_updatedAt": 1777455339496
+  },
+  "restore_pin": {
+    "url": "https://raw.githubusercontent.com/TeleBoxOrg/TeleBox_Plugins/main/restore_pin/restore_pin.ts",
+    "desc": "恢复群组被取消的置顶消息",
+    "_updatedAt": 1777455339959
+  },
+  "rev": {
+    "url": "https://raw.githubusercontent.com/TeleBoxOrg/TeleBox_Plugins/main/rev/rev.ts",
+    "desc": "反转你的消息",
+    "_updatedAt": 1777455340704
+  },
+  "save": {
+    "url": "https://raw.githubusercontent.com/TiaraBasori/TeleBox_Plugins/main/save/save.ts",
+    "desc": "本地保存插件",
+    "_updatedAt": 1777455341218
+  },
+  "search": {
+    "url": "https://raw.githubusercontent.com/TeleBoxDev/TeleBox_Plugins/main/search/search.ts",
+    "desc": "频道消息搜索",
+    "_updatedAt": 1777455341993
+  },
+  "service": {
+    "url": "https://raw.githubusercontent.com/TeleBoxDev/TeleBox_Plugins/main/service/service.ts",
+    "desc": "systemd服务状态查看",
+    "_updatedAt": 1777455342452
+  },
+  "shift": {
+    "url": "https://raw.githubusercontent.com/TeleBoxDev/TeleBox_Plugins/main/shift/shift.ts",
+    "desc": "智能消息转发系统",
+    "_updatedAt": 1777455343239
+  },
+  "soutu": {
+    "url": "https://raw.githubusercontent.com/TeleBoxDev/TeleBox_Plugins/main/soutu/soutu.ts",
+    "desc": "soutu搜图",
+    "_updatedAt": 1777455343685
+  },
+  "speedlink": {
+    "url": "https://raw.githubusercontent.com/TeleBoxDev/TeleBox_Plugins/main/speedlink/speedlink.ts",
+    "desc": "对其他服务器测速",
+    "_updatedAt": 1777455347792
+  },
+  "speedtest": {
+    "url": "https://raw.githubusercontent.com/TeleBoxDev/TeleBox_Plugins/main/speedtest/speedtest.ts",
+    "desc": "网络速度测试",
+    "_updatedAt": 1777455348294
+  },
+  "ssh": {
+    "url": "https://raw.githubusercontent.com/TeleBoxDev/TeleBox_Plugins/main/ssh/ssh.ts",
+    "desc": "ssh管理",
+    "_updatedAt": 1777455349059
+  },
+  "sticker": {
+    "url": "https://raw.githubusercontent.com/TeleBoxDev/TeleBox_Plugins/main/sticker/sticker.ts",
+    "desc": "偷表情",
+    "_updatedAt": 1777455349517
+  },
+  "sticker_to_pic": {
+    "url": "https://raw.githubusercontent.com/TeleBoxDev/TeleBox_Plugins/main/sticker_to_pic/sticker_to_pic.ts",
+    "desc": "表情转图片",
+    "_updatedAt": 1777455350216
+  },
+  "sub": {
+    "url": "https://raw.githubusercontent.com/TeleBoxDev/TeleBox_Plugins/main/sub/sub.ts",
+    "desc": "substore简单管理",
+    "_updatedAt": 1777455350690
+  },
+  "subinfo": {
+    "url": "https://raw.githubusercontent.com/TeleBoxOrg/TeleBox_Plugins/main/subinfo/subinfo.ts",
+    "desc": "订阅链接信息查询",
+    "_updatedAt": 1777455351431
+  },
+  "sum": {
+    "url": "https://raw.githubusercontent.com/TeleBoxOrg/TeleBox_Plugins/main/sum/sum.ts",
+    "desc": "群消息总结",
+    "_updatedAt": 1777455351927
+  },
+  "t": {
+    "url": "https://raw.githubusercontent.com/TeleBoxDev/TeleBox_Plugins/main/t/t.ts",
+    "desc": "文字转语音",
+    "_updatedAt": 1777455354066
+  },
+  "teletype": {
+    "url": "https://raw.githubusercontent.com/TeleBoxOrg/TeleBox_Plugins/main/teletype/teletype.ts",
+    "desc": "打字机效果",
+    "_updatedAt": 1777455354547
+  },
+  "trace": {
+    "url": "https://raw.githubusercontent.com/TeleBoxDev/TeleBox_Plugins/main/trace/trace.ts",
+    "desc": "全局追踪点赞",
+    "_updatedAt": 1777455355276
+  },
+  "tts": {
+    "url": "https://raw.githubusercontent.com/TeleBoxDev/TeleBox_Plugins/main/tts/tts.ts",
+    "desc": "Azure文字转语音",
+    "_updatedAt": 1777455355728
+  },
+  "uai": {
+    "url": "https://raw.githubusercontent.com/TeleBoxDev/TeleBox_Plugins/main/uai/uai.ts",
+    "desc": "引用消息 AI 分析",
+    "_updatedAt": 1777455356466
+  },
+  "warp": {
+    "url": "https://raw.githubusercontent.com/TeleBoxDev/TeleBox_Plugins/main/warp/warp.ts",
+    "desc": "warp管理",
+    "_updatedAt": 1777455356933
+  },
+  "weather": {
+    "url": "https://raw.githubusercontent.com/TeleBoxDev/TeleBox_Plugins/main/weather/weather.ts",
+    "desc": "天气查询",
+    "_updatedAt": 1777455357668
+  },
+  "whois": {
+    "url": "https://raw.githubusercontent.com/TeleBoxDev/TeleBox_Plugins/main/whois/whois.ts",
+    "desc": "域名查询",
+    "_updatedAt": 1777455358166
+  },
+  "xmsl": {
+    "url": "https://raw.githubusercontent.com/TeleBoxDev/TeleBox_Plugins/main/xmsl/xmsl.ts",
+    "desc": "全自动羡慕",
+    "_updatedAt": 1777455358924
+  },
+  "yinglish": {
+    "url": "https://raw.githubusercontent.com/TeleBoxDev/TeleBox_Plugins/main/yinglish/yinglish.ts",
+    "desc": "淫语翻译",
+    "_updatedAt": 1777455359366
+  },
+  "yt-dlp": {
+    "url": "https://raw.githubusercontent.com/TeleBoxDev/TeleBox_Plugins/main/yt-dlp/yt-dlp.ts",
+    "desc": "YouTube 视频下载",
+    "_updatedAt": 1777455360089
+  },
+  "yvlu": {
+    "url": "https://raw.githubusercontent.com/TeleBoxDev/TeleBox_Plugins/main/yvlu/yvlu.ts",
+    "desc": "为被回复用户生成语录",
+    "_updatedAt": 1777455360566
+  },
+  "zhijiao": {
+    "url": "https://raw.githubusercontent.com/TeleBoxDev/TeleBox_Plugins/main/zhijiao/zhijiao.ts",
+    "desc": "掷筊 强随机 使用 笅杯卦辞廿七句",
+    "_updatedAt": 1777455361502
+  },
+  "zpr": {
+    "url": "https://raw.githubusercontent.com/TeleBoxDev/TeleBox_Plugins/main/zpr/zpr.ts",
+    "desc": "二次元图片",
+    "_updatedAt": 1777455362223
+  }
+}

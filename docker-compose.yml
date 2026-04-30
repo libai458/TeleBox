@@ -1,0 +1,53 @@
+version: '3.8'
+
+# 使用 Loon TUN 模式，容器会自动走 Mac 底层代理，无需额外配置代理环境变量
+# 新增账号：复制一个 service，container_name 改名，volumes 指向新的 accountN/ 目录
+
+services:
+  # 账号1
+  telebox-account1:
+    build: . # <--- 核心修改：告诉 Docker 用当前目录的 Dockerfile 构建镜像
+    image: telebox-telebox-bot:latest
+    container_name: account1_bot
+    user: "0:0"
+    restart: unless-stopped
+    stdin_open: true
+    tty: true
+    volumes:
+      - ./account1/config.json:/app/config.json
+      - ./account1/assets:/app/assets
+      - ./account1/data:/app/data
+      - ./.env:/app/.env
+      - ./plugins:/app/plugins
+
+  # 账号2
+  telebox-account2:
+    build: . # <--- 核心修改
+    image: telebox-telebox-bot:latest
+    container_name: account2_bot
+    user: "0:0"
+    restart: unless-stopped
+    stdin_open: true
+    tty: true
+    volumes:
+      - ./account2/config.json:/app/config.json
+      - ./account2/assets:/app/assets
+      - ./account2/data:/app/data
+      - ./.env:/app/.env
+      - ./plugins:/app/plugins
+
+  # 账号3
+  telebox-account3:
+    build: . # <--- 核心修改
+    image: telebox-telebox-bot:latest
+    container_name: account3_bot
+    user: "0:0"
+    restart: unless-stopped
+    stdin_open: true
+    tty: true
+    volumes:
+      - ./account3/config.json:/app/config.json
+      - ./account3/assets:/app/assets
+      - ./account3/data:/app/data
+      - ./.env:/app/.env
+      - ./plugins:/app/plugins
