@@ -36,6 +36,22 @@ type RemotePluginsIndex = Record<string, RemotePluginInfo>;
 
 const PLUGIN_PATH = path.join(process.cwd(), "plugins");
 
+// 插件名会被拼进文件路径，必须禁止路径分隔符和 ".."，否则可以读写/删除插件目录之外的 .ts 文件
+function isSafePluginName(name: string): boolean {
+  return (
+    typeof name === "string" &&
+    name.length > 0 &&
+    name.length <= 100 &&
+    !name.startsWith(".") &&
+    !/[\\/\0]/.test(name) &&
+    !name.includes("..")
+  );
+}
+
+function htmlEscape(text: string): string {
+  return String(text).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
 class EntityManager {
   private count = 0;
   private readonly LIMIT = 100;
@@ -202,8 +218,10 @@ async function getDatabase() {
 }
 
 async function getMediaFileName(msg: any): Promise<string> {
-  const metadata = msg.media as any;
-  return metadata.document.attributes[0].fileName;
+  // 文件名属性不一定排在第一个，回复的也可能是图片等没有 document 的媒体
+  const attributes: any[] = msg?.media?.document?.attributes || [];
+  const fileName = attributes.find((attr) => typeof attr?.fileName === "string")?.fileName;
+  return fileName ? path.basename(fileName) : "";
 }
 
 function normalizeGithubUrl(input: string): string {
@@ -279,6 +297,10 @@ async function fetchWithRetry<T>(
 }
 
 async function installRemotePlugin(plugin: string, msg: Api.Message) {
+  if (!isSafePluginName(plugin)) {
+    await sendOrEditMessage(msg, `❌ 无效的插件名称: ${plugin}`);
+    return;
+  }
   const statusMsg = await sendOrEditMessage(msg, `正在安装插件 ${plugin}...`);
   const res = await fetchWithRetry<RemotePluginsIndex>(PLUGINS_INDEX_URL);
   if (res.status === 200) {
@@ -365,6 +387,11 @@ async function installAllPlugins(msg: Api.Message) {
         }
 
         const pluginData = res.data[plugin];
+        if (!isSafePluginName(plugin)) {
+          failedCount++;
+          failedPlugins.push(`${plugin} (名称无效)`);
+          continue;
+        }
         if (!pluginData || !pluginData.url) {
           failedCount++;
           failedPlugins.push(`${plugin} (无URL)`);
@@ -483,7 +510,7 @@ async function installMultiplePlugins(pluginNames: string[], msg: Api.Message) {
             }/${totalPlugins} (${progress}%)\n✅ 成功: ${installedCount}\n❌ 失败: ${failedCount}`, { parseMode: "html" });
         }
 
-        if (!res.data[pluginName]) {
+        if (!isSafePluginName(pluginName) || !res.data[pluginName]) {
           failedCount++;
           notFoundPlugins.push(pluginName);
           continue;
@@ -602,32 +629,51 @@ async function installPlugin(args: string[], msg: Api.Message) {
       if (replied?.media) {
         const fileName = await getMediaFileName(replied);
         
-        if (!fileName.endsWith(".ts")) {
+        const pluginName = fileName.slice(0, -".ts".length);
+        if (!fileName.endsWith(".ts") || !isSafePluginName(pluginName)) {
           await sendOrEditMessage(msg, `❌ 文件格式错误\n文件不是有效插件`);
           return;
         }
-        
-        const pluginName = fileName.replace(".ts", "");
+
         const statusMsg = await sendOrEditMessage(msg, `🔍 正在验证插件 ${pluginName} ...`);
         const filePath = path.join(PLUGIN_PATH, fileName);
 
-        await msg.client?.downloadMedia(replied, { outputFile: filePath });
-        
+        // 已存在同名插件时先备份：新文件验证失败要恢复旧文件，而不是把它一起删掉
+        let previousBackup: string | null = null;
+        if (fs.existsSync(filePath)) {
+          const cacheDir = createDirectoryInTemp("plugin_backups");
+          const timestamp = new Date()
+            .toISOString()
+            .replace(/[:.]/g, "-")
+            .slice(0, -5);
+          previousBackup = path.join(cacheDir, `${pluginName}_${timestamp}.ts`);
+          fs.copyFileSync(filePath, previousBackup);
+        }
+        const rollback = () => {
+          try {
+            delete require.cache[require.resolve(filePath)];
+          } catch {}
+          if (previousBackup) {
+            fs.copyFileSync(previousBackup, filePath);
+          } else if (fs.existsSync(filePath)) {
+            fs.unlinkSync(filePath);
+          }
+        };
+
         try {
+          await msg.client?.downloadMedia(replied, { outputFile: filePath });
+          // 清掉旧模块缓存，确保验证的是刚下载的文件
+          delete require.cache[require.resolve(filePath)];
           const pluginModule = require(filePath);
           const pluginInstance = pluginModule.default || pluginModule;
-          
+
           if (!isValidPlugin(pluginInstance)) {
-            if (fs.existsSync(filePath)) {
-              fs.unlinkSync(filePath);
-            }
+            rollback();
             await sendOrEditMessage(statusMsg, `❌ 插件验证失败\n文件不是有效插件`);
             return;
           }
         } catch (error) {
-          if (fs.existsSync(filePath)) {
-            fs.unlinkSync(filePath);
-          }
+          rollback();
           await sendOrEditMessage(statusMsg, `❌ 插件加载失败\n错误信息:\n${error instanceof Error ? error.message : String(error)}`);
           return;
         }
@@ -671,6 +717,10 @@ async function installPlugin(args: string[], msg: Api.Message) {
 async function uninstallPlugin(plugin: string, msg: Api.Message) {
   if (!plugin) {
     await sendOrEditMessage(msg, "请提供要卸载的插件名称");
+    return;
+  }
+  if (!isSafePluginName(plugin)) {
+    await sendOrEditMessage(msg, `❌ 无效的插件名称: ${plugin}`);
     return;
   }
   const statusMsg = await sendOrEditMessage(msg, `正在卸载插件 ${plugin}...`);
@@ -728,7 +778,9 @@ async function uninstallMultiplePlugins(
 
       const pluginPath = path.join(PLUGIN_PATH, `${trimmedName}.ts`);
 
-      if (fs.existsSync(pluginPath)) {
+      if (!isSafePluginName(trimmedName)) {
+        results.push({ name: trimmedName, success: false, reason: "插件名称无效" });
+      } else if (fs.existsSync(pluginPath)) {
         try {
           fs.unlinkSync(pluginPath);
           if (db.data[trimmedName]) {
@@ -862,7 +914,7 @@ async function uploadPlugin(args: string[], msg: Api.Message) {
     return;
   }
   const pluginPath = path.join(PLUGIN_PATH, `${pluginName}.ts`);
-  if (!fs.existsSync(pluginPath)) {
+  if (!isSafePluginName(pluginName) || !fs.existsSync(pluginPath)) {
     await sendOrEditMessage(msg, `未找到插件 ${pluginName}`);
     return;
   }
@@ -937,7 +989,7 @@ async function search(msg: Api.Message) {
     const totalPlugins = filteredPlugins.length;
     
     if (totalPlugins === 0 && keyword) {
-      await sendOrEditMessage(statusMsg, `🔍 未找到包含 "<b>${keyword}</b>" 的插件`, { parseMode: "html" });
+      await sendOrEditMessage(statusMsg, `🔍 未找到包含 "<b>${htmlEscape(keyword)}</b>" 的插件`, { parseMode: "html" });
       return;
     }
 
@@ -962,9 +1014,11 @@ async function search(msg: Api.Message) {
     entityMgr.add('code'); // 第六个命令
     entityMgr.add('b'); // 仓库标题
 
-    const highlightMatch = (text: string) => {
+    const highlightMatch = (rawText: string) => {
+      const text = htmlEscape(rawText);
       if (!keyword) return text;
-      const regex = new RegExp(`(${keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+      const escapedKeyword = htmlEscape(keyword);
+      const regex = new RegExp(`(${escapedKeyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
       return text.replace(regex, '<b>$1</b>');
     };
 
@@ -1009,7 +1063,7 @@ async function search(msg: Api.Message) {
 
     let statsInfo = `📊 <b>插件统计:</b>\n`;
     if (keyword) {
-      statsInfo += `• 搜索关键词: "<b>${keyword}</b>"\n`;
+      statsInfo += `• 搜索关键词: "<b>${htmlEscape(keyword)}</b>"\n`;
     }
     statsInfo += `• 总计: ${totalPlugins} 个插件\n`;
     statsInfo += `• ✅ 已安装: ${installedCount} 个\n`;
@@ -1026,7 +1080,7 @@ async function search(msg: Api.Message) {
 
     const repoLink = `\n🔗 <b>插件仓库:</b> <a href="https://github.com/TeleBoxDev/TeleBox_Plugins">TeleBox_Plugins</a>`;
 
-    const title = keyword ? `🔍 搜索 "${keyword}" 结果` : `🔍 远程插件列表`;
+    const title = keyword ? `🔍 搜索 "${htmlEscape(keyword)}" 结果` : `🔍 远程插件列表`;
     const fullMessage = [
       `${title}`,
       `━━━━━━━━━━━━━━━━━`,
@@ -1339,7 +1393,8 @@ class TpmPlugin extends Plugin {
   cmdHandlers: Record<string, (msg: Api.Message) => Promise<void>> = {
     tpm: async (msg) => {
       const text = msg.message;
-      const [, ...args] = text.split(" ");
+      // 按任意空白切分，多个空格或换行不会产生空参数
+      const [, ...args] = text.trim().split(/\s+/);
       if (args.length === 0) {
         await sendOrEditMessage(msg, this.description, { parseMode: "html" });
         return;
@@ -1378,7 +1433,7 @@ class TpmPlugin extends Plugin {
       } else if (cmd === "update" || cmd === "updateAll" || cmd === "ua") {
         await updateAllPlugins(msg);
       } else {
-        await sendOrEditMessage(msg, `❌ 未知命令: <code>${cmd}</code>\n\n${this.description}`, { parseMode: "html" });
+        await sendOrEditMessage(msg, `❌ 未知命令: <code>${htmlEscape(cmd)}</code>\n\n${this.description}`, { parseMode: "html" });
       }
     },
   };
@@ -1389,7 +1444,8 @@ export default new TpmPlugin();
 if (require.main === module) {
   const args = process.argv.slice(2);
   if (args.length === 0 || args?.[0] !== "install" || args?.length < 2) {
-    console.log("Usage: node tpm.ts install <plugin1> <plugin2> ...");
+    console.log("Usage: npm run tpm install <plugin1> <plugin2> ...");
+    process.exit(1);
   }
   installPlugin(args, {
     edit: async ({ text }: any) => {

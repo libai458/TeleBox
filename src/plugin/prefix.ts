@@ -97,7 +97,7 @@ class PrefixPlugin extends Plugin {
         let content = fs.existsSync(envPath) ? fs.readFileSync(envPath, "utf-8") : "";
         const line = `TB_PREFIX="${value}"`;
         if (/^[ \t]*TB_PREFIX\s*=.*$/m.test(content)) {
-          content = content.replace(/^[ \t]*TB_PREFIX\s*=.*$/m, line);
+          content = content.replace(/^[ \t]*TB_PREFIX\s*=.*$/m, () => line);
         } else {
           if (content && !content.endsWith("\n")) content += "\n";
           content += line + "\n";

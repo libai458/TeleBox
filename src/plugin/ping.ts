@@ -2,7 +2,7 @@ import { Plugin } from "@utils/pluginBase";
 import { getPrefixes } from "@utils/pluginManager";
 import { getGlobalClient } from "@utils/globalClient";
 import { Api } from "teleproto";
-import { exec } from "child_process";
+import { execFile } from "child_process";
 import { promisify } from "util";
 import { createConnection } from "net";
 import { PromisedNetSockets } from "teleproto/extensions";
@@ -12,7 +12,16 @@ const prefixes = getPrefixes();
 const mainPrefix = prefixes[0];
 
 
-const execAsync = promisify(exec);
+const execFileAsync = promisify(execFile);
+
+// 仅允许合法的主机名 / IPv4 / IPv6 字符，防止把参数拼进命令行造成注入
+function isValidHost(target: string): boolean {
+  return (
+    target.length > 0 &&
+    target.length <= 253 &&
+    /^[a-z0-9]([a-z0-9._:-]*[a-z0-9])?$/i.test(target)
+  );
+}
 
 // 数据中心IP地址映射 (参考PagerMaid-Modify)
 const DCs = {
@@ -164,8 +173,15 @@ async function systemPing(
   count: number = 3
 ): Promise<{ avg: number; loss: number; output: string }> {
   try {
-    const pingCmd = `ping -c ${count} -W 5 ${target}`;
-    const { stdout, stderr } = await execAsync(pingCmd, { timeout: 10000 });
+    if (!isValidHost(target)) {
+      throw new Error("无效的目标地址");
+    }
+    // 使用 execFile 传参数组，不经过 shell
+    const { stdout } = await execFileAsync(
+      "ping",
+      ["-c", String(count), "-W", "5", target],
+      { timeout: 10000 }
+    );
 
     console.log(stdout);
 
@@ -208,17 +224,18 @@ async function pingDataCenters(): Promise<string[]> {
   for (let dc = 1; dc <= 5; dc++) {
     const ip = DCs[dc as keyof typeof DCs];
     try {
-      // Linux: 使用awk提取时间
-      const { stdout } = await execAsync(
-        `ping -c 1 ${ip} | awk -F 'time=' '/time=/ {print $2}' | awk '{print $1}'`
+      const { stdout } = await execFileAsync(
+        "ping",
+        ["-c", "1", "-W", "3", ip],
+        { timeout: 8000 }
       );
 
-      let pingTime = "0";
-      try {
-        pingTime = String(Math.round(parseFloat(stdout.trim())));
-      } catch {
-        pingTime = "0";
+      // 没有解析到 time= 说明没有收到回包，按超时处理（之前会显示 NaNms）
+      const timeMatch = stdout.match(/time[=<]\s*([0-9.]+)/);
+      if (!timeMatch) {
+        throw new Error("no reply");
       }
+      const pingTime = String(Math.round(parseFloat(timeMatch[1])));
 
       const dcLocation =
         dc === 1 || dc === 3
@@ -284,7 +301,7 @@ class PingPlugin extends Plugin {
       }
 
       try {
-        const args = msg.message.split(" ").slice(1);
+        const args = msg.message.trim().split(/\s+/).slice(1);
         const target = args[0]?.toLowerCase();
 
         // 无参数 - 基础Telegram延迟测试
@@ -350,6 +367,14 @@ class PingPlugin extends Plugin {
 
         const parsed = parseTarget(target);
         const testTarget = parsed.value;
+
+        if (!isValidHost(testTarget)) {
+          await msg.edit({
+            text: `❌ 无效的目标地址: <code>${htmlEscape(target)}</code>`,
+            parseMode: "html",
+          });
+          return;
+        }
 
         // 执行多种测试
         const results: string[] = [];

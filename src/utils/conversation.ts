@@ -14,9 +14,10 @@ async function waitForMessage(
   timeout = 10000
 ): Promise<NewMessageEvent> {
   const generation = getCurrentGeneration();
-  return new Promise<NewMessageEvent>(async (resolve, reject) => {
-    const entity = await client.getEntity(peer);
-    const peerId = (entity as any).id;
+  // 先解析实体：放在 Promise 执行器之外，失败时才能正常 reject 给调用方
+  const entity = await client.getEntity(peer);
+  const peerId = (entity as any).id;
+  return new Promise<NewMessageEvent>((resolve, reject) => {
     let settled = false;
 
     const dispose = () => {
@@ -32,7 +33,7 @@ async function waitForMessage(
         return;
       }
       const msg = event.message;
-      if ((msg?.peerId as any).userId?.equals(peerId)) {
+      if ((msg?.peerId as any)?.userId?.equals(peerId)) {
         settled = true;
         dispose();
         resolve(event);

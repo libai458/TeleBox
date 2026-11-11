@@ -142,6 +142,7 @@ function dynamicRequireWithDeps(filePath: string) {
 }
 
 async function setPlugins(basePath: string) {
+  if (!fs.existsSync(basePath)) return;
   const files = fs
     .readdirSync(basePath)
     .filter((file) => file.endsWith(".ts"));
@@ -298,7 +299,11 @@ async function dealCommandPluginWithMessage(param: {
     }
   } catch (error) {
     console.log(error);
-    await msg.edit({ text: `处理命令时出错：${error}` });
+    try {
+      await msg.edit({ text: `处理命令时出错：${error}` });
+    } catch (editError) {
+      console.log("Failed to report command error:", editError);
+    }
   }
 }
 
@@ -399,11 +404,19 @@ function dealCronPlugin(runtime: TeleBoxRuntime): void {
       const keys = Object.keys(cronTasks);
       for (const key of keys) {
         const cronTask = cronTasks[key];
-        cronManager.set(key, cronTask.cron, async () => {
-          if (generation !== getCurrentGeneration()) return;
-          const client = await getGlobalClient();
-          await cronTask.handler(client);
-        });
+        try {
+          cronManager.set(key, cronTask.cron, async () => {
+            if (generation !== getCurrentGeneration()) return;
+            const client = await getGlobalClient();
+            await cronTask.handler(client);
+          });
+        } catch (error) {
+          // 单个定时任务注册失败（如重名）不应导致整个启动/重载失败
+          console.error(
+            `[CRON] Failed to register cron task "${key}" from plugin ${plugin.name || "unknown"}:`,
+            error
+          );
+        }
       }
     }
   }

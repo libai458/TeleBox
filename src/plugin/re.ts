@@ -14,9 +14,10 @@ class RePlugin extends Plugin {
     (msg: Api.Message, trigger?: Api.Message) => Promise<void>
   > = {
     re: async (msg, trigger) => {
-      const [, ...args] = msg.text.slice(1).split(" ");
-      const count = parseInt(args[0]) || 1;
-      const repeat = parseInt(args[1]) || 1;
+      const args = (msg.message || "").trim().split(/\s+/).slice(1);
+      // 负数或 0 会让 getMessages / 循环行为异常，限制在合理范围内
+      const count = Math.min(Math.max(parseInt(args[0]) || 1, 1), 100);
+      const repeat = Math.max(parseInt(args[1]) || 1, 1);
 
       try {
         if (!msg.isReply) {

@@ -42,15 +42,22 @@ function promptInput(question: string): Promise<string> {
 
   return new Promise((resolve) => {
     rl.question(question, (answer) => {
+      rl.close();
       resolve(answer.trim());
     });
   });
 }
 
+let cachedConfig: TelegramAPI | null = null;
+
 function storeStringSession(session: string): void {
   const config = loadConfig();
   config.session = session;
   saveConfig(config);
+  // 同步更新内存中的配置，否则首次登录后执行 reload 会拿到没有 session 的旧配置而要求重新登录
+  if (cachedConfig) {
+    cachedConfig.session = session;
+  }
 }
 
 async function initConfig(): Promise<TelegramAPI> {
@@ -64,10 +71,10 @@ async function initConfig(): Promise<TelegramAPI> {
       let input: string;
       while (true) {
         input = await promptInput("请输入 API_ID: ");
-        if (input) break; // 输入有效，跳出循环
-        console.error("❌ API_ID 不能为空，请重新输入。");
+        if (/^\d+$/.test(input)) break; // 输入有效，跳出循环
+        console.error("❌ API_ID 必须是纯数字，请重新输入。");
       }
-      api_id = parseInt(input);
+      api_id = parseInt(input, 10);
     }
 
     if (!api_hash) {
@@ -80,11 +87,14 @@ async function initConfig(): Promise<TelegramAPI> {
       api_hash = input;
     }
 
-    const newConfig: TelegramAPI = { api_id, api_hash };
+    // 保留 config.json 中已有的其他字段（proxy、session 等）
+    const newConfig: TelegramAPI = { ...config, api_id, api_hash };
     saveConfig(newConfig);
+    cachedConfig = newConfig;
     return newConfig;
   }
 
+  cachedConfig = config;
   return config;
 }
 

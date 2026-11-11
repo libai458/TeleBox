@@ -246,12 +246,30 @@ async function extractBackup(archivePath: string): Promise<string> {
   return extractDir;
 }
 
+// 在解压目录中定位备份根目录：
+// 标准备份的根目录是 telebox_backup；全量备份（bf all）的根目录是程序目录名
+function findBackupRoot(extractPath: string): string | null {
+  const hasBackupContent = (dir: string) =>
+    fs.existsSync(path.join(dir, "plugins")) ||
+    fs.existsSync(path.join(dir, "assets"));
+
+  const standard = path.join(extractPath, "telebox_backup");
+  if (fs.existsSync(standard)) return standard;
+
+  for (const entry of fs.readdirSync(extractPath, { withFileTypes: true })) {
+    if (!entry.isDirectory()) continue;
+    const candidate = path.join(extractPath, entry.name);
+    if (hasBackupContent(candidate)) return candidate;
+  }
+  return null;
+}
+
 // 恢复备份
 async function restoreBackup(extractPath: string): Promise<void> {
   const programDir = process.cwd();
-  const backupRoot = path.join(extractPath, "telebox_backup");
+  const backupRoot = findBackupRoot(extractPath);
 
-  if (!fs.existsSync(backupRoot)) {
+  if (!backupRoot) {
     throw new Error("无效的备份文件格式");
   }
 
@@ -271,6 +289,9 @@ async function restoreBackup(extractPath: string): Promise<void> {
     const backupPath = path.join(backupRoot, dir);
     const savePath = path.join(currentBackupDir, dir);
 
+    // 备份里没有这个目录时保持现状，否则会把当前目录删掉却没有东西可恢复
+    if (!fs.existsSync(backupPath)) continue;
+
     // 备份当前目录
     if (fs.existsSync(currentPath)) {
       copyDirRecursive(currentPath, savePath);
@@ -278,9 +299,7 @@ async function restoreBackup(extractPath: string): Promise<void> {
     }
 
     // 恢复备份
-    if (fs.existsSync(backupPath)) {
-      copyDirRecursive(backupPath, currentPath);
-    }
+    copyDirRecursive(backupPath, currentPath);
   }
 
   console.log(`恢复完成，原文件备份在: ${currentBackupDir}`);
@@ -339,7 +358,7 @@ class BfPlugin extends Plugin {
           .filter((id) => /^-?\d+$/.test(id))
           .map((id) => {
             // 自动转换100开头的频道ID为负数
-            if (/^100\d+$/.test(id)) {
+            if (/^100\d{10,}$/.test(id)) {
               return `-${id}`;
             }
             return id;
@@ -401,7 +420,7 @@ class BfPlugin extends Plugin {
           .filter(Boolean)
           .map((id) => {
             // 自动转换100开头的频道ID为负数
-            if (/^100\d+$/.test(id)) {
+            if (/^100\d{10,}$/.test(id)) {
               return `-${id}`;
             }
             return id;
@@ -547,7 +566,6 @@ class BfPlugin extends Plugin {
         });
       } finally {
         try {
-          const backupName = generateBackupName().replace(/[^a-zA-Z0-9]/g, "");
           const tempFiles = fs.readdirSync(os.tmpdir()).filter(
             (f) => f.includes("telebox_backup") && f.endsWith(".tar.gz")
           );
@@ -583,6 +601,8 @@ class BfPlugin extends Plugin {
       }
 
       const client = await getGlobalClient();
+      let tempPath = "";
+      let extractPath = "";
 
       try {
         // 获取回复的消息
@@ -602,7 +622,7 @@ class BfPlugin extends Plugin {
         await msg.edit({ text: "📥 正在下载备份...", parseMode: "html" });
 
         // 下载文件
-        const tempPath = path.join(os.tmpdir(), `restore_${Date.now()}.tar.gz`);
+        tempPath = path.join(os.tmpdir(), `restore_${Date.now()}.tar.gz`);
         const buffer = await client.downloadMedia(backupMsg);
 
         if (!buffer) {
@@ -614,18 +634,12 @@ class BfPlugin extends Plugin {
         await msg.edit({ text: "📦 正在解压备份...", parseMode: "html" });
 
         // 解压文件
-        const extractPath = await extractBackup(tempPath);
+        extractPath = await extractBackup(tempPath);
 
         await msg.edit({ text: "🔄 正在恢复备份...", parseMode: "html" });
 
         // 恢复备份
         await restoreBackup(extractPath);
-
-        // 清理临时文件
-        try {
-          fs.unlinkSync(tempPath);
-          fs.rmSync(extractPath, { recursive: true, force: true });
-        } catch {}
 
         // 尝试重载插件
         try {
@@ -653,6 +667,12 @@ class BfPlugin extends Plugin {
           text: `❌ 恢复失败: ${String(error)}`,
           parseMode: "html",
         });
+      } finally {
+        // 无论成功失败都清理临时文件
+        try {
+          if (tempPath) fs.rmSync(tempPath, { force: true });
+          if (extractPath) fs.rmSync(extractPath, { recursive: true, force: true });
+        } catch {}
       }
     },
   };
