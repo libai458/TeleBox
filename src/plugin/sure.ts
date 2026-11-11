@@ -64,6 +64,20 @@ function extractId(from: any): number | null {
   return Number.isFinite(n) ? n : null;
 }
 
+/**
+ * 获取消息发送者 ID。
+ * 私聊中对方发来的消息没有 fromId，发送者就是 peerId 对应的用户。
+ * 自己发出的消息（out）不做回退，避免把自己的消息误判为对方发送。
+ */
+function getSenderId(msg: Api.Message): number | null {
+  const fromId = extractId(msg.fromId as any);
+  if (fromId) return fromId;
+  if (!msg.out && msg.peerId instanceof Api.PeerUser) {
+    return extractId(msg.peerId as any);
+  }
+  return null;
+}
+
 function buildDisplay(
   id: number,
   entity: any,
@@ -118,7 +132,7 @@ async function handleAddDel(
       await msg.edit({ text: "无法获取回复消息" });
       return;
     }
-    uid = extractId(reply.fromId as any);
+    uid = getSenderId(reply);
     if (!uid) {
       await msg.edit({ text: "无法获取用户 ID" });
       return;
@@ -128,7 +142,11 @@ async function handleAddDel(
     } catch {
       /* ignore */
     }
-    display = buildDisplay(uid, entity, !!(reply.fromId as any)?.userId);
+    display = buildDisplay(
+      uid,
+      entity,
+      entity ? entity instanceof Api.User : !(reply.fromId as any)?.channelId && !(reply.fromId as any)?.chatId
+    );
   }
 
   withSureDB((db) => {
@@ -239,10 +257,10 @@ async function handleMsgAddDel(
   await msg.edit({
     text:
       raw && !input
-        ? ` 已清除 ${raw} 的重定向`
-        : `已${action === "add" ? "添加" : "删除"}: <code>${
-            raw ? `${raw} -> ${input}` : input
-          }</code>`,
+        ? ` 已清除 ${htmlEscape(String(raw))} 的重定向`
+        : `已${action === "add" ? "添加" : "删除"}: <code>${htmlEscape(
+            raw ? `${raw} -> ${input}` : String(input)
+          )}</code>`,
     parseMode: "html",
   });
   await msg.deleteWithDelay(5000);
@@ -257,8 +275,8 @@ async function handleMsgList(msg: Api.Message) {
     text: `消息白名单列表：\n${msgs
       .map(
         (m) =>
-          `<code>${m.id}</code>: <code>${m.msg}</code>${
-            m.redirect ? ` -> <code>${m.redirect}</code>` : ""
+          `<code>${m.id}</code>: <code>${htmlEscape(m.msg)}</code>${
+            m.redirect ? ` -> <code>${htmlEscape(m.redirect)}</code>` : ""
           }`
       )
       .join("\n")}`,
@@ -339,7 +357,7 @@ class surePlugin extends Plugin {
         return;
       }
       await msg.edit({
-        text: "未知命令, ",
+        text: `未知命令, 请使用 <code>${mainPrefix}help sure</code> 查看用法`,
         parseMode: "html",
       });
     },
@@ -348,7 +366,7 @@ class surePlugin extends Plugin {
   listenMessageHandler?: ((msg: Api.Message) => Promise<void>) | undefined =
     async (msg) => {
       if (msg.fwdFrom) return;
-      const uid = extractId(msg.fromId as any);
+      const uid = getSenderId(msg);
       const cid = extractId(msg.peerId as any);
       if (!uid || !cid) return;
       if (!getSureIds().includes(uid)) return;
@@ -377,7 +395,6 @@ class surePlugin extends Plugin {
       const sudoMsg = await msg.client?.sendMessage(msg.peerId, {
         message,
         replyTo: msg.replyToMsgId,
-        formattingEntities: message.entities,
       });
       if (cmd && sudoMsg)
         await dealCommandPluginWithMessage({

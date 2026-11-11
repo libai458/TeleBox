@@ -95,9 +95,13 @@ async function update(force = false, msg: Api.Message) {
     await msg.edit({ text: "🔄 插件已重新加载。" });
   } catch (error: any) {
     console.error("❌ 更新失败:", error);
+    // 非命令行错误（如找不到远程分支）没有 cmd/stderr，避免显示 undefined
+    const detail = error?.cmd
+      ? `失败命令行：${error.cmd}\n失败原因：${error.stderr || error.message}`
+      : `失败原因：${error?.message || String(error)}`;
     await msg.edit({
       text:
-        `❌ 更新失败\n失败命令行：${error.cmd}\n失败原因：${error.stderr}\n\n` +
+        `❌ 更新失败\n${detail}\n\n` +
         "如果是 Git 冲突，请手动解决后再更新，或使用 .update -f 强制更新（会丢弃本地改动）",
     });
   }
@@ -109,8 +113,9 @@ class UpdatePlugin extends Plugin {
   description: string = `更新项目：拉取最新代码并安装依赖\n<code>${mainPrefix}update -f/-force</code> 强制更新`;
   cmdHandlers: Record<string, (msg: Api.Message) => Promise<void>> = {
     update: async (msg) => {
-      const args = msg.message.slice(1).split(" ").slice(1);
-      const force = args.includes("--force") || args.includes("-f");
+      const args = msg.message.trim().split(/\s+/).slice(1);
+      const force =
+        args.includes("--force") || args.includes("-force") || args.includes("-f");
       await update(force, msg);
     },
   };

@@ -105,7 +105,23 @@ async function loginWithQr(client: TelegramClient): Promise<boolean> {
           exceptIds: [],
         })
       );
-    } catch {
+    } catch (err: any) {
+      // 扫码成功但账号开启了两步验证：需要输入密码完成登录，否则会一直轮询到超时
+      if (err?.errorMessage === "SESSION_PASSWORD_NEEDED") {
+        process.stdout.write("\n");
+        await client.signInWithPassword(
+          { apiId: client.apiId, apiHash: client.apiHash },
+          {
+            password: async () => await getUserInput("Enter 2FA password: "),
+            onError: async (passwordError: Error) => {
+              console.error("❌ 2FA password error:", passwordError.message);
+              return false; // 允许重新输入
+            },
+          }
+        );
+        console.log("✅ Login successful.");
+        return true;
+      }
       await delay(QR_REFRESH_INTERVAL);
       continue;
     }

@@ -182,7 +182,7 @@ class HelpPlugin extends Plugin {
 
   private async handleHelp(msg: Api.Message) {
     try {
-      const args = msg.text.split(" ").slice(1);
+      const args = (msg.message || "").trim().split(/\s+/).slice(1);
       const commands = listCommands();
 
       /* ================= 主帮助信息 (消息1) ================= */

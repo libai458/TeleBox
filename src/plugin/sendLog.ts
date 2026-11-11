@@ -68,10 +68,11 @@ const fn = async (msg: Api.Message) => {
   console.log("SendLog plugin triggered");
 
   const parts = msg.message.trim().split(/\s+/);
-  if (parts.length >= 2 && parts[0].startsWith(".") && parts[1] === "set") {
+  // 不再硬编码 "." 前缀：使用其他前缀时 set/clean 子命令会被忽略并直接发送日志
+  if (parts.length >= 2 && parts[1] === "set") {
     const target = parts[2];
     if (!target) {
-      await msg.edit({ text: "用法: ${mainPrefix}sendlog set <chatId|me>" });
+      await msg.edit({ text: `用法: ${mainPrefix}sendlog set <chatId|me>` });
       return;
     }
     const db = new SendLogDB();
@@ -82,7 +83,7 @@ const fn = async (msg: Api.Message) => {
     return;
   }
 
-  if (parts.length >= 2 && parts[0].startsWith(".") && parts[1] === "clean") {
+  if (parts.length >= 2 && parts[1] === "clean") {
     await msg.edit({ text: `🔍 正在搜索日志文件...` });
 
     const { outLog, errLog } = await findLogFiles();
@@ -238,7 +239,7 @@ class SendLogPlugin extends Plugin {
     // 当前插件不持有需要在 reload 时额外释放的长期资源。
   }
 
-  description: string = `发送日志文件到收藏夹或自定义目标\n.sendlog set <对话 ID|@用户名|me> 设置发送目标 (默认 me)\n.sendlog clean 清理日志文件`;
+  description: string = `发送日志文件到收藏夹或自定义目标\n${mainPrefix}sendlog set &lt;对话 ID|@用户名|me&gt; 设置发送目标 (默认 me)\n${mainPrefix}sendlog clean 清理日志文件`;
   cmdHandlers: Record<string, (msg: Api.Message) => Promise<void>> = {
     sendlog: fn,
     logs: fn,

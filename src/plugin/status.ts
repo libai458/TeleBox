@@ -200,7 +200,8 @@ class TeleBoxSystemMonitor extends Plugin {
       createDirectoryInAssets(this.PLUGIN_NAME),
       "config.json"
     );
-    this.initDB();
+    // 构造阶段的初始化失败只记录日志；之后各命令在用到 db 时会再次尝试初始化
+    this.initDB().catch(() => {});
   }
 
   // 初始化数据库
@@ -270,6 +271,7 @@ class TeleBoxSystemMonitor extends Plugin {
       parseMode: "html",
     });
     const startTime = Date.now();
+    if (!this.db) await this.initDB().catch(() => {});
     const template = this.db?.data?.template || DEFAULT_TEMPLATE;
     const statusData = await this.getStatusData();
     const scanTime = Date.now() - startTime;
@@ -307,10 +309,13 @@ class TeleBoxSystemMonitor extends Plugin {
 
   // 生成进度条字符串
   private generateProgressBar(percentage: number, length: number = 20): string {
-    const filled = Math.round((percentage / 100) * length);
+    // 多核下进程 CPU 可能超过 100%，不限制范围会让 repeat() 收到负数而抛异常
+    const safe = Number.isFinite(percentage) ? percentage : 0;
+    const clamped = Math.min(100, Math.max(0, safe));
+    const filled = Math.round((clamped / 100) * length);
     const empty = length - filled;
     const bar = "█".repeat(filled) + "░".repeat(empty);
-    return `[${bar}] ${percentage}%`;
+    return `[${bar}] ${safe}%`;
   }
 
   // 获取状态数据
@@ -435,7 +440,7 @@ class TeleBoxSystemMonitor extends Plugin {
     await this.db.write();
 
     await msg.edit({
-      text: "✅ 模板已保存！使用 <code>${mainPrefix}status</code> 查看效果",
+      text: `✅ 模板已保存！使用 <code>${mainPrefix}status</code> 查看效果`,
       parseMode: "html",
     });
   }
@@ -501,11 +506,11 @@ Shell: node.js
 Locale: ${locale}
 Processes: ${systemDetails.processes}
 CPU: ${cpuUsage}% (system) / ${processCpuUsage}% (process)
-Memory: ${memoryUsage} (${memPercent}%)
+Memory: ${memoryUsage}
 Process Memory: ${this.formatBytes(processMemUsage.rss)} (${processMemPercent}%)
 Swap: ${systemDetails.swapInfo}
 Disk: ${systemDetails.diskInfo}
-Network IO (${networkInterface}): ${systemDetails.networkInfo}
+Network Total (${networkInterface}): ${systemDetails.networkInfo}
 Scan Time: ${scanTime}ms
 </code>`;
   }
@@ -520,7 +525,7 @@ Scan Time: ${scanTime}ms
     let packages = "Unknown";
     let initSystem = "Unknown";
     let diskInfo = "Unknown";
-    let networkInfo = "330 B/s (IN) - 1.39 KiB/s (OUT)";
+    let networkInfo = "Unknown";
     let processes = "Unknown";
     let swapInfo = "Disabled";
 
@@ -533,6 +538,7 @@ Scan Time: ${scanTime}ms
         diskInfo = await this.getLinuxDiskInfo();
         processes = await this.getProcessCount();
         swapInfo = await this.getLinuxSwapInfo();
+        networkInfo = this.getLinuxNetworkInfo(this.getMainInterface());
       } else if (platform === "win32") {
         osInfo = `Windows ${arch}`;
         kernelInfo = `Windows NT ${release}`;
@@ -565,10 +571,10 @@ Scan Time: ${scanTime}ms
   private async getLinuxOsInfo(arch: string): Promise<string> {
     try {
       const osRelease = fs.readFileSync("/etc/os-release", "utf8");
-      const prettyName = osRelease.match(/PRETTY_NAME="([^"]+)"/)?.[1] || "Debian GNU/Linux";
+      const prettyName = osRelease.match(/PRETTY_NAME="?([^"\n]+)"?/)?.[1] || "Linux";
       return `${prettyName} ${arch}`;
     } catch {
-      return `Debian GNU/Linux 13 (trixie) ${arch}`;
+      return `Linux ${arch}`;
     }
   }
 
@@ -577,17 +583,28 @@ Scan Time: ${scanTime}ms
       const kernel = this.safeExec("uname -r").trim();
       return `Linux ${kernel}`;
     } catch {
-      return "Linux 6.12.41+deb13-arm64";
+      return `Linux ${os.release()}`;
     }
   }
 
   private async getLinuxPackageCount(): Promise<string> {
-    try {
-      const count = this.safeExec("dpkg -l | grep '^ii' | wc -l").trim();
-      return `${count} (dpkg)`;
-    } catch {
-      return "763 (dpkg)";
+    // 依次尝试常见包管理器；管道的退出码取决于 wc，所以要先确认命令存在
+    const managers: Array<[string, string, string]> = [
+      ["dpkg", "dpkg-query -f '.\\n' -W | wc -l", "dpkg"],
+      ["rpm", "rpm -qa | wc -l", "rpm"],
+      ["pacman", "pacman -Qq | wc -l", "pacman"],
+      ["apk", "apk info | wc -l", "apk"],
+    ];
+    for (const [bin, command, label] of managers) {
+      try {
+        this.safeExec(`command -v ${bin}`);
+        const count = parseInt(this.safeExec(command).trim(), 10);
+        if (!Number.isNaN(count)) return `${count} (${label})`;
+      } catch {
+        // 该包管理器不存在，尝试下一个
+      }
     }
+    return "Unknown";
   }
 
   private async getInitSystem(): Promise<string> {
@@ -611,7 +628,7 @@ Scan Time: ${scanTime}ms
 
       return "Unknown";
     } catch {
-      return "systemd 257.7-1";
+      return "Unknown";
     }
   }
 
@@ -708,16 +725,25 @@ Scan Time: ${scanTime}ms
         const match = result.match(/LoadPercentage=(\d+)/);
         return match ? parseFloat(match[1]).toFixed(2) : "0.00";
       } else {
-        const cpus = os.cpus();
-        let totalIdle = 0, totalTick = 0;
-        cpus.forEach((cpu) => {
-          for (const type in cpu.times) {
-            totalTick += cpu.times[type as keyof typeof cpu.times];
+        // os.cpus() 给出的是开机以来的累计值，需要取两次采样的差值才是当前使用率
+        const sample = () => {
+          let idle = 0, total = 0;
+          for (const cpu of os.cpus()) {
+            for (const type in cpu.times) {
+              total += cpu.times[type as keyof typeof cpu.times];
+            }
+            idle += cpu.times.idle;
           }
-          totalIdle += cpu.times.idle;
-        });
-        const usage = Math.round((1 - totalIdle / totalTick) * 100 * 100) / 100;
-        return usage.toFixed(2);
+          return { idle, total };
+        };
+        const start = sample();
+        await new Promise((resolve) => setTimeout(resolve, 200));
+        const end = sample();
+        const totalDiff = end.total - start.total;
+        const idleDiff = end.idle - start.idle;
+        if (totalDiff <= 0) return "0.00";
+        const usage = Math.round((1 - idleDiff / totalDiff) * 100 * 100) / 100;
+        return Math.min(100, Math.max(0, usage)).toFixed(2);
       }
     } catch {
       return "0.00";
@@ -783,10 +809,30 @@ Scan Time: ${scanTime}ms
           return name;
         }
       }
-      return "enp0s6";
+      return names[0] || "Unknown";
     } catch {
-      return "enp0s6";
+      return "Unknown";
     }
+  }
+
+  // 读取 Linux 网卡累计流量（开机以来）
+  private getLinuxNetworkInfo(iface: string): string {
+    try {
+      const content = fs.readFileSync("/proc/net/dev", "utf8");
+      for (const line of content.split("\n")) {
+        const [name, rest] = line.split(":");
+        if (!rest || name.trim() !== iface) continue;
+        const fields = rest.trim().split(/\s+/).map(Number);
+        const rx = fields[0];
+        const tx = fields[8];
+        if (Number.isFinite(rx) && Number.isFinite(tx)) {
+          return `${this.formatBytes(rx)} (IN) - ${this.formatBytes(tx)} (OUT)`;
+        }
+      }
+    } catch {
+      // ignore
+    }
+    return "Unknown";
   }
 
   // 安全执行系统命令

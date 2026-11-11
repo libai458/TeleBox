@@ -36,6 +36,8 @@ class Logger {
   private level: LogLevel = LogLevel.INFO;
   private readonly DB_NAME = "logger";
   private context: Record<string, any> = {};
+  /** 已保存的日志等级加载完成后 resolve（加载失败也会 resolve，使用默认等级） */
+  public ready: Promise<void> = Promise.resolve();
 
   private static originalDebug = console.debug;
   private static originalLog = console.log;
@@ -49,7 +51,7 @@ class Logger {
     // 只有主 Logger 实例才需要覆写控制台和加载 DB
     if (Object.keys(context).length === 0) {
         this.overrideConsole();
-        this.initDB().catch(console.error);
+        this.ready = this.initDB().catch(console.error);
     }
   }
 

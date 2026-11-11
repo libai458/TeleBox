@@ -9,6 +9,15 @@ import * as path from "path";
 import * as os from "os";
 const prefixes = getPrefixes();
 const mainPrefix = prefixes[0];
+
+// 名称、标题、JSON 等内容中的 < > & 必须转义，否则 HTML 解析会失败或吞掉内容
+function htmlEscape(text: unknown): string {
+  return String(text ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
 class DebugPlugin extends Plugin {
   cleanup(): void {
     // 当前插件不持有需要在 reload 时额外释放的长期资源。
@@ -130,7 +139,7 @@ class DebugPlugin extends Plugin {
         });
       } catch (error: any) {
         await msg.edit({
-          text: `获取信息时出错: ${error.message}`,
+          text: `获取信息时出错: ${error?.message || String(error)}`,
         });
       }
     },
@@ -152,7 +161,7 @@ class DebugPlugin extends Plugin {
 
       try {
         await msg.edit({
-          text: `<blockquote expandable>${txt}</blockquote>`,
+          text: `<blockquote expandable>${htmlEscape(txt)}</blockquote>`,
           parseMode: "html",
         });
       } catch (error: any) {
@@ -195,7 +204,7 @@ class DebugPlugin extends Plugin {
 
       try {
         await msg.edit({
-          text: `<blockquote expandable>${txt}</blockquote>`,
+          text: `<blockquote expandable>${htmlEscape(txt)}</blockquote>`,
           parseMode: "html",
         });
       } catch (error: any) {
@@ -345,15 +354,16 @@ async function parseTelegramLink(
     const cleanLink = link.trim();
 
     // 消息链接格式: https://t.me/username/123 或 https://t.me/c/123456/789
+    // 话题消息链接: https://t.me/username/话题ID/123 或 https://t.me/c/123456/话题ID/789
     const messageRegex =
-      /https?:\/\/t\.me\/(?:c\/)?([^\/]+)\/(\d+)(?:\?[^#]*)?(?:#.*)?$/;
+      /(?:https?:\/\/)?t\.me\/(c\/)?([^\/?#]+)\/(?:\d+\/)?(\d+)(?:\?[^#]*)?(?:#.*)?$/;
     const messageMatch = cleanLink.match(messageRegex);
 
     if (messageMatch) {
-      const [, chatIdentifier, messageId] = messageMatch;
+      const [, privatePrefix, chatIdentifier, messageId] = messageMatch;
       let chatId: any;
 
-      if (cleanLink.includes("/c/")) {
+      if (privatePrefix) {
         // 私有群组/频道链接: https://t.me/c/1272003941/940776
         // chatIdentifier = "1272003941", 需要加上 -100 前缀
         chatId = `-100${chatIdentifier}`;
@@ -379,7 +389,7 @@ async function parseTelegramLink(
     }
 
     // 实体链接格式: https://t.me/username 或 https://t.me/joinchat/xxx
-    const entityRegex = /https?:\/\/t\.me\/([^\/\?#]+)(?:\?[^#]*)?(?:#.*)?$/;
+    const entityRegex = /(?:https?:\/\/)?t\.me\/([^\/\?#]+)\/?(?:\?[^#]*)?(?:#.*)?$/;
     const entityMatch = cleanLink.match(entityRegex);
 
     if (entityMatch) {
@@ -426,7 +436,7 @@ async function formatEntityInfo(entity: any): Promise<string> {
     if (entity.className === "User") {
       info += `<b>USER</b>\n`;
       info +=
-        `· Name: ${entity.firstName || ""} ${entity.lastName || ""}`.trim() +
+        `· Name: ${htmlEscape(entity.firstName || "")} ${htmlEscape(entity.lastName || "")}`.trim() +
         "\n";
       info += `· Username: ${
         entity.username ? "@" + entity.username : "N/A"
@@ -438,7 +448,7 @@ async function formatEntityInfo(entity: any): Promise<string> {
     } else if (entity.className === "Channel") {
       const isChannel = entity.broadcast;
       info += `<b>${isChannel ? "CHANNEL" : "SUPERGROUP"}</b>\n`;
-      info += `· Title: ${entity.title}\n`;
+      info += `· Title: ${htmlEscape(entity.title)}\n`;
       info += `· Username: ${
         entity.username ? "@" + entity.username : "N/A"
       }\n`;
@@ -450,7 +460,7 @@ async function formatEntityInfo(entity: any): Promise<string> {
         info += `· Members: ${entity.participantsCount}\n`;
     } else if (entity.className === "Chat") {
       info += `<b>GROUP</b>\n`;
-      info += `· Title: ${entity.title}\n`;
+      info += `· Title: ${htmlEscape(entity.title)}\n`;
       const groupId = entity.id.toString();
       const fullGroupId = groupId.startsWith("-") ? groupId : `-${groupId}`;
       info += `· ID: <code>${fullGroupId}</code>\n`;
@@ -502,13 +512,13 @@ async function formatMessageInfo(msg: Api.Message): Promise<string> {
             if (originalSender.className === "User") {
               const user = originalSender as Api.User;
               const fullName = [user.firstName, user.lastName].filter(Boolean).join(" ") || "N/A";
-              info += `· Original Name: ${fullName}\n`;
+              info += `· Original Name: ${htmlEscape(fullName)}\n`;
               if (user.username) {
                 info += `· Original Username: @${user.username}\n`;
               }
             } else if (originalSender.className === "Channel") {
               const channel = originalSender as Api.Channel;
-              info += `· Original Channel: ${channel.title}\n`;
+              info += `· Original Channel: ${htmlEscape(channel.title)}\n`;
               if (channel.username) {
                 info += `· Original Username: @${channel.username}\n`;
               }
@@ -518,7 +528,7 @@ async function formatMessageInfo(msg: Api.Message): Promise<string> {
               info += `· Original Chat ID: <code>${fullChannelId}</code>\n`;
             } else if (originalSender.className === "Chat") {
               const chat = originalSender as Api.Chat;
-              info += `· Original Group: ${chat.title}\n`;
+              info += `· Original Group: ${htmlEscape(chat.title)}\n`;
               const groupId = chat.id.toString();
               const fullGroupId = groupId.startsWith("-") ? groupId : `-${groupId}`;
               info += `· Original Chat ID: <code>${fullGroupId}</code>\n`;
@@ -541,18 +551,18 @@ async function formatMessageInfo(msg: Api.Message): Promise<string> {
       
       // 如果有签名
       if (msg.fwdFrom.postAuthor) {
-        info += `· Post Author: ${msg.fwdFrom.postAuthor}\n`;
+        info += `· Post Author: ${htmlEscape(msg.fwdFrom.postAuthor)}\n`;
       }
       
       // 如果是从私聊转发的消息，显示隐藏用户信息
       if (msg.fwdFrom.fromName && !msg.fwdFrom.fromId) {
-        info += `· Hidden User: ${msg.fwdFrom.fromName}\n`;
+        info += `· Hidden User: ${htmlEscape(msg.fwdFrom.fromName)}\n`;
       }
     }
 
     return info;
   } catch (error: any) {
-    return `<b>MESSAGE</b>\nError: ${error.message}\n`;
+    return `<b>MESSAGE</b>\nError: ${htmlEscape(error.message)}\n`;
   }
 }
 
@@ -573,7 +583,7 @@ async function formatUserInfo(
         [userEntity.firstName, userEntity.lastName].filter(Boolean).join(" ") ||
         "N/A";
 
-      info += `· Name: ${fullName}\n`;
+      info += `· Name: ${htmlEscape(fullName)}\n`;
       info += `· Username: ${
         userEntity.username ? "@" + userEntity.username : "N/A"
       }\n`;
@@ -589,7 +599,7 @@ async function formatUserInfo(
 
     return info;
   } catch (error: any) {
-    return `<b>${title}</b>\nError: ${error.message}\n`;
+    return `<b>${title}</b>\nError: ${htmlEscape(error.message)}\n`;
   }
 }
 
@@ -599,7 +609,7 @@ async function formatSelfInfo(client: TelegramClient): Promise<string> {
     const me = await client.getMe();
     return await formatUserInfo(client, me.id, "SELF", false);
   } catch (error: any) {
-    return `<b>SELF</b>\nError: ${error.message}\n`;
+    return `<b>SELF</b>\nError: ${htmlEscape(error.message)}\n`;
   }
 }
 
@@ -624,7 +634,7 @@ async function formatChatInfo(
     ) {
       const chatEntity = chat as Api.Chat;
       info += `<b>GROUP</b>\n`;
-      info += `· Title: ${chatEntity.title}\n`;
+      info += `· Title: ${htmlEscape(chatEntity.title)}\n`;
       const groupId = chatEntity.id.toString();
       const fullGroupId = groupId.startsWith("-") ? groupId : `-${groupId}`;
       info += `· ID: <code>${fullGroupId}</code>\n`;
@@ -632,7 +642,7 @@ async function formatChatInfo(
       const channelEntity = chat as Api.Channel;
       const isChannel = channelEntity.broadcast;
       info += `<b>${isChannel ? "CHANNEL" : "GROUP"}</b>\n`;
-      info += `· Title: ${channelEntity.title}\n`;
+      info += `· Title: ${htmlEscape(channelEntity.title)}\n`;
       info += `· Username: ${
         channelEntity.username ? "@" + channelEntity.username : "N/A"
       }\n`;
@@ -647,7 +657,7 @@ async function formatChatInfo(
 
     return info;
   } catch (error: any) {
-    return `<b>CHAT</b>\nError: ${error.message}\n`;
+    return `<b>CHAT</b>\nError: ${htmlEscape(error.message)}\n`;
   }
 }
 
@@ -666,7 +676,7 @@ async function parseGroupId(client: TelegramClient, chatId: string): Promise<str
       entityFound = true;
     } catch (error: any) {
       info += `· 状态: ❌ 无法访问此群组\n`;
-      info += `· 错误: ${error.message}\n\n`;
+      info += `· 错误: ${htmlEscape(error.message)}\n\n`;
     }
 
     if (entityFound && entity) {
@@ -679,7 +689,7 @@ async function parseGroupId(client: TelegramClient, chatId: string): Promise<str
         const channel = entity as Api.Channel;
         const isChannel = channel.broadcast;
         info += `· 类型: ${isChannel ? "频道" : "超级群组"}\n`;
-        info += `· 名称: ${channel.title}\n`;
+        info += `· 名称: ${htmlEscape(channel.title)}\n`;
         
         if (channel.username) {
           info += `· 用户名: @${channel.username}\n`;
@@ -703,7 +713,7 @@ async function parseGroupId(client: TelegramClient, chatId: string): Promise<str
       } else if (entity.className === "Chat") {
         const chat = entity as Api.Chat;
         info += `· 类型: 普通群组\n`;
-        info += `· 名称: ${chat.title}\n`;
+        info += `· 名称: ${htmlEscape(chat.title)}\n`;
         info += `· 用户名: 无（普通群组无用户名）\n`;
         
         if (chat.participantsCount) {
@@ -713,7 +723,7 @@ async function parseGroupId(client: TelegramClient, chatId: string): Promise<str
       } else {
         info += `· 类型: ${entity.className}\n`;
         if (entity.title) {
-          info += `· 名称: ${entity.title}\n`;
+          info += `· 名称: ${htmlEscape(entity.title)}\n`;
         }
       }
       

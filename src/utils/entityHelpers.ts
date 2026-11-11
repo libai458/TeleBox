@@ -3,6 +3,23 @@ import { Api } from "teleproto/tl";
 import { Entity } from "teleproto/define";
 
 /**
+ * 从错误中提取 FloodWait 等待秒数；不是 FloodWait 错误时返回 null
+ * teleproto 的 FloodWaitError 消息是 "A wait of N seconds is required"，秒数在 error.seconds 上
+ */
+function getFloodWaitSeconds(error: any): number | null {
+  if (typeof error?.seconds === "number" && error.seconds >= 0) {
+    return error.seconds;
+  }
+  const text = `${error?.errorMessage || ""} ${error?.message || ""}`;
+  const match =
+    text.match(/FLOOD_(?:PREMIUM_)?WAIT_(\d+)/) ||
+    text.match(/wait of (\d+) seconds/i);
+  if (match) return parseInt(match[1], 10);
+  if (text.includes("FLOOD_WAIT")) return 60;
+  return null;
+}
+
+/**
  * 安全获取实体，确保包含正确的access hash
  * @param client - Telegram客户端实例
  * @param entityId - 实体ID (可以是数字ID、用户名或实体对象)
@@ -99,8 +116,9 @@ export async function safeForwardMessage(
       );
 
       // 处理 FLOOD_WAIT 错误
-      if (error.message && error.message.includes("FLOOD_WAIT")) {
-        const waitTime = parseInt(error.message.match(/\d+/)?.[0] || "60");
+      const floodSeconds = getFloodWaitSeconds(error);
+      if (floodSeconds !== null) {
+        const waitTime = floodSeconds;
         console.log(`[EntityHelper] FloodWait ${waitTime}s, 等待重试`);
         await new Promise((resolve) =>
           setTimeout(resolve, (waitTime + 1) * 1000)
@@ -212,8 +230,9 @@ export async function withEntityAccess<T>(
       );
 
       // 处理 FLOOD_WAIT 错误
-      if (error.message && error.message.includes("FLOOD_WAIT")) {
-        const waitTime = parseInt(error.message.match(/\d+/)?.[0] || "60");
+      const floodSeconds = getFloodWaitSeconds(error);
+      if (floodSeconds !== null) {
+        const waitTime = floodSeconds;
         console.log(`[EntityHelper] FloodWait ${waitTime}s, 等待重试`);
         await new Promise((resolve) =>
           setTimeout(resolve, (waitTime + 1) * 1000)

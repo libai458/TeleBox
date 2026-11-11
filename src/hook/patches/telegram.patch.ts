@@ -7,7 +7,7 @@ Api.Message.prototype.deleteWithDelay = async function (
 ) {
   await sleep(delay);
   try {
-    return this.delete();
+    return await this.delete();
   } catch (e) {
     console.error(e);
     if (shouldThrowError) {
@@ -20,7 +20,7 @@ Api.Message.prototype.safeDelete = async function (
   { revoke }: { revoke: boolean } = { revoke: false }
 ) {
   try {
-    return this.delete({ revoke });
+    return await this.delete({ revoke });
   } catch (error) {
     console.log("safeDelete catch error:", error);
   }

@@ -6,9 +6,18 @@ type CronTask = {
   handler: (client: TelegramClient) => Promise<void>;
 };
 
-const cmdIgnoreEdited = !!JSON.parse(
-  process.env.TB_CMD_IGNORE_EDITED || "true"
-);
+function parseBooleanEnv(value: string | undefined, fallback: boolean): boolean {
+  if (value === undefined || value.trim() === "") return fallback;
+  const v = value.trim().toLowerCase();
+  if (["true", "1", "yes", "on"].includes(v)) return true;
+  if (["false", "0", "no", "off"].includes(v)) return false;
+  console.warn(
+    `[CMD_IGNORE_EDITED] 无法识别的 TB_CMD_IGNORE_EDITED 值 "${value}"，使用默认值 ${fallback}`
+  );
+  return fallback;
+}
+
+const cmdIgnoreEdited = parseBooleanEnv(process.env.TB_CMD_IGNORE_EDITED, true);
 console.log(
   `[CMD_IGNORE_EDITED] 命令监听忽略编辑的消息: ${cmdIgnoreEdited} (可使用环境变量 TB_CMD_IGNORE_EDITED 覆盖)`
 );

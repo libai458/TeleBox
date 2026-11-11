@@ -51,6 +51,8 @@ async function withTimeout<T>(
 }
 
 async function createClient(): Promise<TelegramClient> {
+  // 等待已保存的日志等级加载完成，否则首次创建客户端时总是使用默认等级
+  await logger.ready;
   const api = await getApiConfig();
   const proxy = api.proxy;
   if (proxy) {
@@ -183,11 +185,15 @@ export async function reloadRuntime(): Promise<TeleBoxRuntime> {
 
     try {
       await unloadPluginsForRuntime(oldRuntime);
-      await destroyClient(oldRuntime.client);
     } catch (error) {
       oldRuntime.state = "failed";
       throw error;
     }
+
+    // 旧客户端销毁失败/超时不应让重载中断：此时插件已卸载，中断会让 bot 处于无响应状态
+    await destroyClient(oldRuntime.client).catch((destroyError) => {
+      console.error("[RUNTIME] Failed to destroy old runtime client, continuing reload:", destroyError);
+    });
 
     const newRuntime = await buildRuntime();
     currentRuntime = newRuntime;
